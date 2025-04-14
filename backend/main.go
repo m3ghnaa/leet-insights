@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/gin-contrib/cors"
 )
 
 // Response structure for Gemini API
@@ -24,6 +25,8 @@ type GeminiResponse struct {
 	} `json:"candidates"`
 }
 
+var cache = make(map[string]string)
+
 func fetchGeminiData(problemNumber string) (string, error) {
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
@@ -34,18 +37,22 @@ func fetchGeminiData(problemNumber string) (string, error) {
 
 	url := "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro-002:generateContent?key=" + apiKey
 
+	// Updated Gemini prompt
+	promptText := fmt.Sprintf(`For LeetCode problem %s, provide a structured response including:
+
+1. A brief summary of the problem.
+2. Real-world applications categorized by industry (e.g., finance, healthcare, AI).
+3. Common techniques and algorithms used to solve it (e.g., sliding window, dynamic programming).
+4. Tips for approaching the problem efficiently (without giving the full solution).
+`, problemNumber),
+
 	// Construct request payload
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"contents": []map[string]interface{}{
 			{
 				"parts": []map[string]string{
 					{
-						"text": fmt.Sprintf(`For LeetCode problem %s, provide a structured response including:
-1. A brief summary of the problem.
-2. Real-world applications categorized by industry (e.g., finance, healthcare, AI).
-3. Common techniques and algorithms used to solve it.
-4. Tips for approaching the problem efficiently (without giving the full solution).
-Format the response in bullet points or numbered lists for clarity.`, problemNumber),
+						"text": promptText,
 					},
 				},
 			},
@@ -105,7 +112,14 @@ Format the response in bullet points or numbered lists for clarity.`, problemNum
 
 	fmt.Println("❌ No response received from Gemini API")
 	return "", fmt.Errorf("no response received")
+
+	if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
+		text := response.Candidates[0].Content.Parts[0].Text
+		cache[problemNumber] = text // save to cache
+		return text, nil
+	}
 }
+
 
 func loadEnv() {
 	err := godotenv.Load()
@@ -118,6 +132,8 @@ func main() {
 	loadEnv()
 
 	router := gin.Default()
+
+	router.Use(cors.Default())
 
 	router.GET("/leetcode/:id", func(c *gin.Context) {
 		problemID := c.Param("id")
