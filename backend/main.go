@@ -138,3 +138,4 @@ func main() {
     }
     fmt.Println("🚀 Server is running on port", port)
     router.Run(":" + port)
+}
