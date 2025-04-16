@@ -28,97 +28,81 @@ type GeminiResponse struct {
 var cache = make(map[string]string)
 
 func fetchGeminiData(problemNumber string) (string, error) {
-	apiKey := os.Getenv("GEMINI_API_KEY")
-	if apiKey == "" {
-		fmt.Println("❌ Error: GEMINI_API_KEY is not set")
-		return "", fmt.Errorf("GEMINI_API_KEY is missing")
-	}
-	fmt.Println("✅ API Key loaded successfully")
+    // 1) Cache lookup
+    if text, exists := cache[problemNumber]; exists {
+        fmt.Println("⚡ Cache hit for problem", problemNumber)
+        return text, nil
+    }
 
-	url := "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro-002:generateContent?key=" + apiKey
+    apiKey := os.Getenv("GEMINI_API_KEY")
+    if apiKey == "" {
+        return "", fmt.Errorf("❌ Error: GEMINI_API_KEY is not set")
+    }
+    fmt.Println("✅ API Key loaded successfully")
 
-	// Updated Gemini prompt
-	promptText := fmt.Sprintf(`For LeetCode problem %s, provide a structured response including:
+    url := "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro-002:generateContent?key=" + apiKey
+
+    // 2) Build the prompt (no stray comma here)
+    promptText := fmt.Sprintf(`For LeetCode problem %s, provide a structured response including:
 
 1. A brief summary of the problem.
 2. Real-world applications categorized by industry (e.g., finance, healthcare, AI).
 3. Common techniques and algorithms used to solve it (e.g., sliding window, dynamic programming).
 4. Tips for approaching the problem efficiently (without giving the full solution).
-`, problemNumber),
+`, problemNumber)
 
-	// Construct request payload
-	requestBody, err := json.Marshal(map[string]interface{}{
-		"contents": []map[string]interface{}{
-			{
-				"parts": []map[string]string{
-					{
-						"text": promptText,
-					},
-				},
-			},
-		},
-	})
-	if err != nil {
-		fmt.Println("❌ Error marshaling JSON:", err)
-		return "", err
-	}
-	fmt.Println("✅ JSON request body created successfully")
+    // 3) Marshal the request
+    requestBody, err := json.Marshal(map[string]interface{}{
+        "contents": []map[string]interface{}{
+            {
+                "parts": []map[string]string{
+                    {"text": promptText},
+                },
+            },
+        },
+    })
+    if err != nil {
+        return "", fmt.Errorf("❌ Error marshaling JSON: %w", err)
+    }
+    fmt.Println("✅ JSON request body created successfully")
 
-	// Create HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(requestBody))
-	if err != nil {
-		fmt.Println("❌ Error creating request:", err)
-		return "", err
-	}
+    // 4) Send the HTTP request
+    req, err := http.NewRequest("POST", url, bytes.NewBuffer(requestBody))
+    if err != nil {
+        return "", fmt.Errorf("❌ Error creating request: %w", err)
+    }
+    req.Header.Set("Content-Type", "application/json")
 
-	req.Header.Set("Content-Type", "application/json")
-	fmt.Println("✅ Request headers set successfully")
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        return "", fmt.Errorf("❌ Error sending request: %w", err)
+    }
+    defer resp.Body.Close()
 
-	// Send request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("❌ Error sending request:", err)
-		return "", err
-	}
-	defer resp.Body.Close()
-	fmt.Println("✅ Request sent successfully, status code:", resp.StatusCode)
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        return "", fmt.Errorf("❌ Error reading response: %w", err)
+    }
+    fmt.Println("📜 Raw Response Body:", string(body))
 
-	// Read response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("❌ Error reading response:", err)
-		return "", err
-	}
-	fmt.Println("✅ Response received successfully")
+    // 5) Parse Gemini's JSON
+    var gr GeminiResponse
+    if err := json.Unmarshal(body, &gr); err != nil {
+        return "", fmt.Errorf("❌ Error parsing JSON response: %w", err)
+    }
 
-	// Print raw response body
-	fmt.Println("📜 Raw Response Body:", string(body))
+    // 6) Extract the text, cache it, and return
+    if len(gr.Candidates) > 0 && len(gr.Candidates[0].Content.Parts) > 0 {
+        text := gr.Candidates[0].Content.Parts[0].Text
+        cache[problemNumber] = text
+        fmt.Println("✅ Successfully extracted and cached response")
+        return text, nil
+    }
 
-	// Parse response
-	var response GeminiResponse
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		fmt.Println("❌ Error parsing JSON response:", err)
-		return "", err
-	}
-	fmt.Println("✅ Response parsed successfully")
-
-	// Extract text from response
-	if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
-		fmt.Println("✅ Successfully extracted response")
-		return response.Candidates[0].Content.Parts[0].Text, nil
-	}
-
-	fmt.Println("❌ No response received from Gemini API")
-	return "", fmt.Errorf("no response received")
-
-	if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
-		text := response.Candidates[0].Content.Parts[0].Text
-		cache[problemNumber] = text // save to cache
-		return text, nil
-	}
+    return "", fmt.Errorf("❌ No response received from Gemini API")
 }
+
 
 
 func loadEnv() {
@@ -148,6 +132,9 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"problem": problemID, "insights": response})
 	})
 
-	fmt.Println("🚀 Server is running on port 8080...")
-	router.Run(":8080")
-}
+	port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+    fmt.Println("🚀 Server is running on port", port)
+    router.Run(":" + port)
