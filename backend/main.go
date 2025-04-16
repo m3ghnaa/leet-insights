@@ -119,7 +119,7 @@ func main() {
 
 	router.Use(cors.Default())
 
-	router.GET("https://leet-insights.onrender.com/leetcode/:id", func(c *gin.Context) {
+	router.GET("/leetcode/:id", func(c *gin.Context) {
 		problemID := c.Param("id")
 
 		response, err := fetchGeminiData(problemID)
