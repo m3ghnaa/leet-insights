@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-
+	"strings"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/gin-contrib/cors"
