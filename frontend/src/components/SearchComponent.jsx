@@ -97,7 +97,7 @@ function SearchComponent() {
                   <h3 className="mt-4 text-warning">📌 {children}</h3>
                 ),
                 h2: ({ children }) => (
-                  <h4 className="mt-3 text-info">🔧 {children}</h4>
+                  <h4 className="mt-3 text-info">{children}</h4>
                 ),
                 h3: ({ children }) => (
                   <h5 className="text-success">💡 {children}</h5>
