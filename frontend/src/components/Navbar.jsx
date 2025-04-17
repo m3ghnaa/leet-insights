@@ -2,11 +2,11 @@
 
 function Navbar() {
   return (
-    <nav className="navbar navbar-expand-lg">
+    <nav className="navbar navbar-expand-lg fixed-top">
       <div className="container">
-      <h3 className="text-center fw-bold gradient-text">
+      <a className="h4 text-center fw-bold text-decoration-none navbar-brand" href="/">
           💡 Leet Insights
-        </h3>
+        </a>
         <button
           className="navbar-toggler"
           type="button"
@@ -21,13 +21,8 @@ function Navbar() {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
-              <a className="nav-link" href="/">
-                Home
-              </a>
-            </li>
-            <li className="nav-item">
               <a className="nav-link" href="/search">
-                Search
+              Search
               </a>
             </li>
           </ul>
