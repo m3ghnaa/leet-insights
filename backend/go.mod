@@ -1,4 +1,4 @@
-module github.com/meghna/leetai/backend
+module github.com/meghna/leet-insights/backend
 
 go 1.24
 
