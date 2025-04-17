@@ -73,12 +73,12 @@ html, body {
 }
 
 .custom-width {
-  width: 100%; /* Full width on small screens */
+  width: 100%; 
 }
 
 @media (min-width: 768px) {
   .custom-width {
-    width: 75%; /* 75% width on larger screens */
+    width: 80%; 
   }
 }
 
@@ -86,6 +86,7 @@ html, body {
 .navbar { 
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   padding-top: 0px !important;
+  padding-bottom: 0px !important;
 }
 
 .navbar-brand {
@@ -110,13 +111,4 @@ html, body {
 .navbar-toggler {
   border-color: rgba(255, 255, 255, 0.5) !important; 
 }
-/* Footer */
-.footer {
-  background-color: #1e1e1e;
-  padding: 20px;
-  text-align: center;
-  color: #b0b0b0;
-  font-size: 14px;
-  margin-top: 40px;
-  border-top: 1px solid #333;
-}
+
