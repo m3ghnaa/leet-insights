@@ -31,7 +31,7 @@ function SearchComponent() {
     setShowApproach(false);
 
     try {
-      const response = await fetch(`http://localhost:8080/leetcode/${query}`);
+      const response = await fetch(`https://leet-insights.onrender.com/leetcode/${query}`);
       const data = await response.json();
       const fullContent = data.insights || "No insights available.";
 
