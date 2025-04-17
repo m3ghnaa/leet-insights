@@ -34,7 +34,7 @@ func fetchGeminiData(problemNumber string) (string, error) {
         return text, nil
     }
 
-    apiKey := os.Getenv("GEMINI_API_KEY")
+    apiKey := strings.TrimSpace(os.Getenv("GEMINI_API_KEY"))
     if apiKey == "" {
         return "", fmt.Errorf("❌ Error: GEMINI_API_KEY is not set")
     }
