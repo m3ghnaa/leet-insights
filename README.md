@@ -21,7 +21,7 @@ AI Integration: Gemini API (Google AI Studio)
 Deployment: Netlify, Render
 
 ## How to Use
-[Visit Leet Insights](https://your-live-url.com)
+[Visit Leet Insights]([https://leet-insights.netlify.app/])
 
 Enter a LeetCode problem title (e.g., "Two Sum")
 
