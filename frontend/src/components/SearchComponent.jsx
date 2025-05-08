@@ -33,8 +33,8 @@ function SearchComponent() {
     try {
       const response = await fetch(`https://leet-insights.onrender.com/leetcode/${query}`);
       const data = await response.json();
-      const fullContent = data.insights || "No insights available.";
-
+      const fullContent = data.insights || "⚠️ API Quota Exhausted. We apologize for the inconvenience. Our free API quota for fetching LeetCode insights has been reached. Please try again later when the quota resets.";
+      console.log(data.insights);
       const parts = fullContent.split("## Efficient Approach Overview");
       setInsights(parts[0].trim());
 
